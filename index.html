@@ -338,21 +338,40 @@
             };
 
             const actualizarCantidadManual = (id, valor) => {
+                // 1. Si el usuario borra el campo por completo, dejamos el valor vacío en el estado temporalmente
+                // para que no se borre el producto del carrito mientras escribe.
+                if (valor === "") {
+                    setCarrito(prevCarrito => ({
+                        ...prevCarrito,
+                        [id]: {
+                            ...prevCarrito[id],
+                            cantidad: "" // Permitimos el campo vacío momentáneamente en el input
+                        }
+                    }));
+                    return;
+                }
+
+                // 2. Convertimos el texto del input a número flotante
                 const nuevaCantidad = parseFloat(valor);
-                setCarrito(prevCarrito => {
-                    const nuevoCarrito = { ...prevCarrito };
-                    if (isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
-                        delete nuevoCarrito[id];
-                        return nuevoCarrito;
+
+                // 3. Validamos que sea un número válido y mayor o igual a cero
+                if (!isNaN(nuevaCantidad) && nuevaCantidad >= 0) {
+                    const item = carrito[id];
+
+                    // Evitamos que supere el stock disponible si existe el límite
+                    if (item.stockDisponible && nuevaCantidad > item.stockDisponible) {
+                        alert(`Solo hay ${item.stockDisponible} Kg disponibles.`);
+                        return;
                     }
-                    if (nuevaCantidad > nuevoCarrito[id].stockDisponible) {
-                        Swal.fire({ icon: 'warning', title: 'Stock insuficiente', text: `Solo hay ${nuevoCarrito[id].stockDisponible} disponibles`, confirmButtonColor: '#4361ee' });
-                        nuevoCarrito[id].cantidad = nuevoCarrito[id].stockDisponible;
-                    } else {
-                        nuevoCarrito[id].cantidad = nuevaCantidad;
-                    }
-                    return nuevoCarrito;
-                });
+
+                    setCarrito(prevCarrito => ({
+                        ...prevCarrito,
+                        [id]: {
+                            ...prevCarrito[id],
+                            cantidad: nuevaCantidad
+                        }
+                    }));
+                }
             };
 
             const vaciarCarrito = () => {
@@ -375,6 +394,24 @@
             const finalizarVenta = () => {
                 if (Object.keys(carrito).length === 0) {
                     return Swal.fire({ icon: 'warning', title: 'Carrito vacío', text: 'Agrega productos para continuar', confirmButtonColor: '#4361ee' });
+                }
+
+                // Validar si hay productos con cantidades inválidas o vacías
+                const productosInvalidos = Object.values(carrito).some(item => item.cantidad === "" || item.cantidad <= 0);
+
+                if (productosInvalidos) {
+                    // Validación estilizada con SweetAlert
+                    Swal.fire({
+                        title: '¡Espera!',
+                        text: 'Por favor, verifica las cantidades de los productos a granel antes de cobrar.',
+                        icon: 'warning',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#0d6efd', // El azul primario de Bootstrap de tu botón cobrar
+                        customClass: {
+                            popup: 'rounded-4 shadow' // Para que combine con tus esquinas redondeadas del carrito
+                        }
+                    });
+                    return;
                 }
                 const ventasHistoricas = JSON.parse(localStorage.getItem("ventas_pos_historico") || "[]");
                 const ahora = new Date();
@@ -621,7 +658,22 @@
                                                         <div class="btn-group btn-group-sm">
                                                             <button class="btn btn-light border" onClick={() => modificarCantidad(id, -1)}>-</button>
                                                             {item.productoGranel === 'TRUE' ? (
-                                                                <input type="number" step="0.001" min="0.001" class="form-control form-control-sm text-center" style={{ width: '80px' }} value={item.cantidad} onChange={(e) => actualizarCantidadManual(id, e.target.value)} />
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.001"
+                                                                    min="0.001"
+                                                                    class="form-control form-control-sm text-center"
+                                                                    style={{ width: '70px' }}
+                                                                    value={item.cantidad === "" ? "" : item.cantidad} // <-- Esto evita que React ponga un 0 por defecto
+                                                                    onChange={(e) => actualizarCantidadManual(id, e.target.value)}
+                                                                    onBlur={() => {
+                                                                        // Si el usuario da clic fuera del input y lo dejó vacío o en 0, lo regresamos a un mínimo (ej: 0.1) o lo eliminamos.
+                                                                        if (item.cantidad === "" || item.cantidad <= 0) {
+                                                                            modificarCantidad(id, 0.1 - item.cantidad); // O la lógica que prefieras para restaurar o limpiar
+                                                                        }
+                                                                    }}
+                                                                />
+
                                                             ) : (
                                                                 <span class="btn btn-light border disabled fw-bold" style={{ width: '40px' }}>{item.cantidad}</span>
                                                             )}
