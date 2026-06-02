@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ventas Las Güeras</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --accent-color: #3f37c9;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: #333;
+        }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .card-producto {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .card-producto:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .badge-stock {
+            font-size: 0.7rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .carrito-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.02);
+            position: sticky;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            max-height: calc(100vh - 130px);
+        }
+
+        .lista-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: calc(100vh - 440px);
+            padding-right: 5px;
+        }
+
+        .item-carrito {
+            background: #fdfdfd;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .btn-add {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .category-pill {
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .btn-flotante-carrito {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(67, 97, 238, 0.4);
+            border: none;
+            z-index: 1030;
+            transition: transform 0.2s;
+        }
+
+        .btn-flotante-carrito:active {
+            transform: scale(0.9);
+        }
+
+        .badge-flotante {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #ef476f;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .extra-small {
+            font-size: 0.75rem;
+        }
+
+        .btn-limpiar-busqueda {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .btn-limpiar-busqueda:hover {
+            color: #dc3545 !important;
+        }
+
+        .offcanvas-react {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            width: 400px;
+            max-width: 100%;
+            background: white;
+            z-index: 1045;
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .offcanvas-react.left {
+            left: 0;
+            transform: translateX(-100%);
+            border-radius: 0 20px 20px 0;
+        }
+
+        .offcanvas-react.right {
+            right: 0;
+            transform: translateX(100%);
+            border-radius: 20px 0 0 20px;
+        }
+
+        .offcanvas-react.show {
+            transform: translateX(0);
+        }
+
+        .offcanvas-backdrop-react {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+
+        .metodo-pago-btn {
+            border: 2px solid #e0e0e0;
+            background: transparent;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .metodo-pago-btn.active-efectivo {
+            border-color: #198754;
+            background-color: #eafaf1;
+            color: #198754;
+        }
+
+        .metodo-pago-btn.active-tarjeta {
+            border-color: #0d6efd;
+            background-color: #ecf3ff;
+            color: #0d6efd;
+        }
+
+        .metodo-pago-btn.active-transferencia {
+            border-color: #8a3ffc;
+            background-color: #f4edf1;
+            color: #8a3ffc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        function App() {
+            const SHEET_URL = "https://opensheet.elk.sh/1sHTjDspusbIZ3P5HgHyaEqMaC5Vq9attQTXjc1yN5n0/Inventario";
+
+            // Estados globales del POS
+            const [menuGestionAbierto, setMenuGestionAbierto] = useState(false);
+            const [carritoMovilAbierto, setCarritoMovilAbierto] = useState(false);
+            const [productosGlobal, setProductosGlobal] = useState([]);
+            const [carrito, setCarrito] = useState({});
+            const [busqueda, setBusqueda] = useState("");
+            const [cargando, setCargando] = useState(true);
+            const [fechaReporte, setFechaReporte] = useState("");
+            const [metodoPago, setMetodoPago] = useState("Efectivo");
+
+            // Carga inicial de datos
+            useEffect(() => {
+                obtenerProductos();
+            }, []);
+
+            const obtenerProductos = () => {
+                setCargando(true);
+                fetch(SHEET_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            const parseados = data
+                                .filter(p => p.nombre && p.nombre.trim() !== "")
+                                .map((p, index) => ({
+                                    ...p,
+                                    _idUnico: `prod_${index}_${Date.now()}`
+                                }));
+                            setProductosGlobal(parseados);
+                        } else {
+                            setProductosGlobal([]);
+                        }
+                        setCargando(false);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error', 'No se pudo conectar con el inventario', 'error');
+                        setCargando(false);
+                    });
+            };
+
+            // Filtrado reactivo mediante useMemo
+            const productosFiltrados = useMemo(() => {
+                const query = busqueda.toLowerCase().trim();
+                if (!query) return productosGlobal;
+                return productosGlobal.filter(p =>
+                    (p.nombre || "").toLowerCase().includes(query) ||
+                    (p.codigo || "").toLowerCase().includes(query) ||
+                    (p.categoria || "").toLowerCase().includes(query)
+                );
+            }, [busqueda, productosGlobal]);
+
+            const totalCarrito = useMemo(() => {
+                return Object.values(carrito).reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+            }, [carrito]);
+
+            // Manejadores del Carrito
+            const agregarAlCarrito = (prod) => {
+                const id = prod.codigo || prod.nombre;
+                setCarrito(prevCarrito => {
+                    const nuevoCarrito = { ...prevCarrito };
+                    if (!nuevoCarrito[id]) {
+                        nuevoCarrito[id] = {
+                            nombre: prod.nombre,
+                            precio: parseFloat(prod.precioVenta || 0),
+                            cantidad: 1,
+                            stockDisponible: parseInt(prod.stock || 999),
+                            productoGranel: prod.productoGranel
+                        };
+                    } else {
+                        if (nuevoCarrito[id].cantidad < nuevoCarrito[id].stockDisponible) {
+                            nuevoCarrito[id].cantidad++;
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'Stock máximo', text: 'No hay más piezas disponibles', confirmButtonColor: '#4361ee' });
+                        }
+                    }
+                    return nuevoCarrito;
+                });
+            };
+
+            const modificarCantidad = (id, cambio) => {
+                setCarrito(prevCarrito => {
+                    const nuevoCarrito = { ...prevCarrito };
+                    const item = nuevoCarrito[id];
+                    if (!item) return prevCarrito;
+
+                    const paso = item.productoGranel === 'TRUE' ? 0.1 : 1;
+                    item.cantidad += (cambio > 0 ? paso : -paso);
+
+                    if (item.cantidad <= 0) {
+                        delete nuevoCarrito[id];
+                    } else if (item.cantidad > item.stockDisponible) {
+                        item.cantidad = item.stockDisponible;
+                    }
+
+                    if (item.productoGranel === 'TRUE') {
+                        item.cantidad = Math.round(item.cantidad * 1000) / 1000;
+                    }
+                    return nuevoCarrito;
+                });
+            };
+
+            const actualizarCantidadManual = (id, valor) => {
+                const nuevaCantidad = parseFloat(valor);
+                setCarrito(prevCarrito => {
+                    const nuevoCarrito = { ...prevCarrito };
+                    if (isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
+                        delete nuevoCarrito[id];
+                        return nuevoCarrito;
+                    }
+                    if (nuevaCantidad > nuevoCarrito[id].stockDisponible) {
+                        Swal.fire({ icon: 'warning', title: 'Stock insuficiente', text: `Solo hay ${nuevoCarrito[id].stockDisponible} disponibles`, confirmButtonColor: '#4361ee' });
+                        nuevoCarrito[id].cantidad = nuevoCarrito[id].stockDisponible;
+                    } else {
+                        nuevoCarrito[id].cantidad = nuevaCantidad;
+                    }
+                    return nuevoCarrito;
+                });
+            };
+
+            const vaciarCarrito = () => {
+                if (Object.keys(carrito).length === 0) return;
+                Swal.fire({
+                    title: '¿Vaciar carrito?',
+                    text: 'Se eliminarán todos los productos',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4361ee',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonText: 'Sí, vaciar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        setCarrito({});
+                    }
+                });
+            };
+
+            const finalizarVenta = () => {
+                if (Object.keys(carrito).length === 0) {
+                    return Swal.fire({ icon: 'warning', title: 'Carrito vacío', text: 'Agrega productos para continuar', confirmButtonColor: '#4361ee' });
+                }
+                const ventasHistoricas = JSON.parse(localStorage.getItem("ventas_pos_historico") || "[]");
+                const ahora = new Date();
+                const fechaBusqueda = ahora.toLocaleDateString('sv-SE');
+                const horaVenta = ahora.toLocaleTimeString();
+
+                const nuevaVenta = {
+                    id: Date.now(),
+                    fechaISO: fechaBusqueda,
+                    hora: horaVenta,
+                    metodoPago: metodoPago,
+                    articulos: Object.values(carrito).map(item => ({
+                        nombre: item.nombre,
+                        cantidad: item.cantidad,
+                        precio: item.precio,
+                        subtotal: item.precio * item.cantidad
+                    })),
+                    total: totalCarrito
+                };
+
+                ventasHistoricas.push(nuevaVenta);
+                localStorage.setItem("ventas_pos_historico", JSON.stringify(ventasHistoricas));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Venta completada',
+                    text: `Registrada a las ${horaVenta} pagando con [${metodoPago}]`,
+                    confirmButtonColor: '#4361ee'
+                });
+
+                setCarrito({});
+                setMetodoPago("Efectivo");
+                setCarritoMovilAbierto(false);
+            };
+
+            // Módulo de Reportes e Historial
+            const generarReportePDF = () => {
+                if (!fechaReporte) return Swal.fire({ icon: 'warning', title: 'Selecciona una fecha', confirmButtonColor: '#4361ee' });
+
+                const ventas = JSON.parse(localStorage.getItem("ventas_pos_historico") || "[]");
+                const ventasFiltradas = ventas.filter(v => v.fechaISO === fechaReporte);
+
+                if (ventasFiltradas.length === 0) {
+                    return Swal.fire({ icon: 'info', title: 'Sin resultados', text: 'No hay ventas en esta fecha', confirmButtonColor: '#4361ee' });
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFontSize(18);
+                doc.text("Reporte Histórico de Ventas", 14, 20);
+                doc.setFontSize(12);
+                doc.text(`Fecha consultada: ${fechaReporte}`, 14, 30);
+
+                const tablaData = [];
+                let granTotal = 0;
+
+                ventasFiltradas.forEach(venta => {
+                    venta.articulos.forEach(art => {
+                        tablaData.push([
+                            venta.hora,
+                            art.nombre,
+                            art.cantidad,
+                            `$${art.precio.toFixed(2)}`,
+                            `$${art.subtotal.toFixed(2)}`,
+                            venta.metodoPago || 'Efectivo'
+                        ]);
+                        granTotal += art.subtotal;
+                    });
+                });
+
+                doc.autoTable({
+                    startY: 35,
+                    head: [['Hora', 'Producto', 'Cant.', 'Precio U.', 'Subtotal', 'Método Pago']],
+                    body: tablaData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [67, 97, 238] }
+                });
+
+                doc.text(`TOTAL VENDIDO EL DÍA: $${granTotal.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+                doc.save(`Reporte_${fechaReporte}.pdf`);
+                setMenuGestionAbierto(false);
+            };
+
+            const verResumenConsola = () => {
+                if (!fechaReporte) return Swal.fire({ icon: 'warning', title: 'Selecciona una fecha', confirmButtonColor: '#4361ee' });
+
+                const ventas = JSON.parse(localStorage.getItem("ventas_pos_historico") || "[]");
+                const filtradas = ventas.filter(v => v.fechaISO === fechaReporte);
+
+                if (filtradas.length === 0) {
+                    return Swal.fire({ icon: 'info', title: 'Sin ventas', text: 'No hay registros', confirmButtonColor: '#4361ee' });
+                }
+
+                let efectivo = 0, tarjeta = 0, transferencia = 0;
+                filtradas.forEach(v => {
+                    if (v.metodoPago === 'Tarjeta') tarjeta += v.total;
+                    else if (v.metodoPago === 'Transferencia') transferencia += v.total;
+                    else efectivo += v.total;
+                });
+
+                const total = filtradas.reduce((acc, v) => acc + v.total, 0);
+                Swal.fire({
+                    icon: 'info',
+                    title: `Resumen ${fechaReporte}`,
+                    html: `<div style="text-align:left">
+                            <p>💰 <b>Total General:</b> $${total.toFixed(2)}</p>
+                            <hr>
+                            <p>💵 <b>Efectivo:</b> $${efectivo.toFixed(2)}</p>
+                            <p>💳 <b>Tarjeta:</b> $${tarjeta.toFixed(2)}</p>
+                            <p>🏦 <b>Transferencia:</b> $${transferencia.toFixed(2)}</p>
+                            <hr>
+                            <p>🛒 <b>Transacciones:</b> ${filtradas.length}</p>
+                           </div>`,
+                    confirmButtonColor: '#4361ee'
+                });
+                console.table(filtradas);
+                setMenuGestionAbierto(false);
+            };
+
+            const renderFormaPagoComponent = () => (
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted text-uppercase mb-2 d-block">
+                        <i class="bi bi-credit-card-2-front me-1"></i> Forma de Pago:
+                    </label>
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" className={`btn btn-sm metodo-pago-btn ${metodoPago === 'Efectivo' ? 'active-efectivo' : ''}`} onClick={() => setMetodoPago('Efectivo')}>
+                            <i class="bi bi-cash me-1"></i> Efectivo
+                        </button>
+                        <button type="button" className={`btn btn-sm metodo-pago-btn ${metodoPago === 'Tarjeta' ? 'active-tarjeta' : ''}`} onClick={() => setMetodoPago('Tarjeta')}>
+                            <i class="bi bi-credit-card me-1"></i> Tarjeta
+                        </button>
+                        <button type="button" className={`btn btn-sm metodo-pago-btn ${metodoPago === 'Transferencia' ? 'active-transferencia' : ''}`} onClick={() => setMetodoPago('Transferencia')}>
+                            <i class="bi bi-bank me-1"></i> Transf.
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div>
+                    {/* Backdrops personalizados */}
+                    {menuGestionAbierto && <div class="offcanvas-backdrop-react" onClick={() => setMenuGestionAbierto(false)}></div>}
+                    {carritoMovilAbierto && <div class="offcanvas-backdrop-react" onClick={() => setCarritoMovilAbierto(false)}></div>}
+
+                    {/* Navbar */}
+                    <nav class="navbar navbar-custom py-2">
+                        <div class="container-fluid px-4 flex-column">
+                            <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+                                <span class="navbar-brand mb-0 h1 text-primary fw-bold">
+                                    <i class="bi bi-box-seam me-2"></i><small class="text-muted fs-6">Las Güeras</small>
+                                </span>
+                                <button class="btn btn-outline-primary" type="button" onClick={() => setMenuGestionAbierto(true)}>
+                                    <i class="bi bi-list fs-4"></i> Menú de Gestión
+                                </button>
+                            </div>
+
+                            <div class="w-100 mt-1">
+                                <div class="input-group input-group-lg shadow-sm">
+                                    <span class="input-group-text bg-white border-end-0 text-muted">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} class="form-control border-start-0 border-end-0 ps-0" placeholder="Buscar por nombre, código o marca en el inventario..." />
+                                    {busqueda.length > 0 && (
+                                        <span class="input-group-text bg-white border-start-0 text-muted btn-limpiar-busqueda" onClick={() => setBusqueda("")}>
+                                            <i class="bi bi-x-circle-fill"></i>
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Contenedor Principal */}
+                    <div class="container-fluid px-4">
+                        <div class="row g-4">
+                            {/* Catálogo */}
+                            <div class="col-lg-8">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold mb-0">Catálogo de Productos</h5>
+                                    <span class="text-muted small">
+                                        {cargando ? 'Cargando...' : `${productosFiltrados.length} productos encontrados`}
+                                    </span>
+                                </div>
+
+                                {cargando ? (
+                                    <div class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                    </div>
+                                ) : (
+                                    <div class="row g-3 pb-5">
+                                        {productosFiltrados.map(prod => (
+                                            <div key={prod._idUnico} class="col-12 col-md-4 col-xl-3">
+                                                <div class="card card-producto p-3 shadow-sm">
+                                                    <span className={`badge rounded-pill bg-light border badge-stock ${parseInt(prod.stock) <= parseInt(prod.minStock || 5) ? 'text-danger' : 'text-success'}`}>
+                                                        Stock: {prod.stock || 0}
+                                                    </span>
+                                                    <div>
+                                                        <span class="category-pill">{prod.categoria || 'General'}</span>
+                                                        <h6 class="fw-bold mt-2 mb-1 text-truncate" title={prod.nombre}>
+                                                            {prod.nombre || 'Sin nombre'}
+                                                        </h6>
+                                                        <p class="small text-muted mb-2 text-truncate">{prod.descripcion || ''}</p>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                                        <span class="h6 mb-0 fw-bold">${parseFloat(prod.precioVenta || 0).toFixed(2)}</span>
+                                                        <button class="btn btn-primary btn-sm btn-add shadow-sm" onClick={() => agregarAlCarrito(prod)}>
+                                                            <i class="bi bi-plus-lg"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Carrito Lateral (Escritorio) */}
+                            <div class="col-lg-4 d-none d-lg-block">
+                                <div class="carrito-panel p-4 shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 class="fw-bold mb-0">Mi Carrito</h5>
+                                        <button class="btn btn-sm btn-outline-danger border-0" onClick={vaciarCarrito}>
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="lista-items">
+                                        {Object.keys(carrito).length === 0 ? (
+                                            <div class="text-center text-muted py-5">
+                                                <i class="bi bi-cart-x display-4"></i>
+                                                <p class="mt-2">Vacío</p>
+                                            </div>
+                                        ) : (
+                                            Object.entries(carrito).map(([id, item]) => (
+                                                <div key={id} class="item-carrito shadow-sm">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <span class="fw-semibold small">{item.nombre}</span>
+                                                        <span class="text-primary fw-bold small">${(item.precio * item.cantidad).toFixed(2)}</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                                        <span class="text-muted extra-small">
+                                                            ${item.precio} {item.productoGranel === 'TRUE' ? 'x Kg' : 'c/u'}
+                                                        </span>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <button class="btn btn-light border" onClick={() => modificarCantidad(id, -1)}>-</button>
+                                                            {item.productoGranel === 'TRUE' ? (
+                                                                <input type="number" step="0.001" min="0.001" class="form-control form-control-sm text-center" style={{ width: '80px' }} value={item.cantidad} onChange={(e) => actualizarCantidadManual(id, e.target.value)} />
+                                                            ) : (
+                                                                <span class="btn btn-light border disabled fw-bold" style={{ width: '40px' }}>{item.cantidad}</span>
+                                                            )}
+                                                            <button class="btn btn-light border" onClick={() => modificarCantidad(id, 1)} disabled={item.cantidad >= item.stockDisponible}>+</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    <div class="mt-auto pt-3 border-top">
+                                        {renderFormaPagoComponent()}
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted">Renglones:</span>
+                                            <span class="fw-bold">{Object.keys(carrito).length}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="h5 mb-0">Total:</span>
+                                            <span class="h4 mb-0 text-primary fw-bold">${totalCarrito.toFixed(2)}</span>
+                                        </div>
+                                        <button class="btn btn-primary w-100 py-3 fw-bold shadow-sm" onClick={finalizarVenta}>
+                                            COBRAR AHORA
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Botón Flotante (Móvil) */}
+                    {!carritoMovilAbierto && (
+                        <button class="btn-flotante-carrito d-lg-none" type="button" onClick={() => setCarritoMovilAbierto(true)}>
+                            <i class="bi bi-cart3 fs-3"></i>
+                            <span class="badge-flotante">{Object.keys(carrito).length}</span>
+                        </button>
+                    )}
+
+                    {/* Offcanvas Carrito (Móvil) */}
+                    <div
+                        className={`offcanvas-react right ${carritoMovilAbierto ? 'show' : ''}`}
+                        style={{
+                            zIndex: 1045,
+                            height: '80vh',
+                            top: 'auto',
+                            bottom: 0,
+                            borderTopLeftRadius: '20px',
+                            borderTopRightRadius: '20px',
+                            boxShadow: '0 -5px 15px rgba(0,0,0,0.15)',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}
+                    >
+
+                        {/* ENCABEZADO */}
+                        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white" style={{ borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                            <h5 class="fw-bold mb-0">🛒 Mi Carrito</h5>
+                            <button type="button" class="btn-close" onClick={() => setCarritoMovilAbierto(false)}></button>
+                        </div>
+
+                        {/* CUERPO PRINCIPAL */}
+                        <div class="d-flex flex-column flex-grow-1 overflow-hidden bg-white px-3">
+
+                            {/* LISTA DE PRODUCTOS*/}
+                            <div class="flex-grow-1 overflow-y-auto py-2 pe-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                {Object.keys(carrito).length === 0 ? (
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-cart-x display-4"></i>
+                                        <p class="mt-2">Vacío</p>
+                                    </div>
+                                ) : (
+                                    Object.entries(carrito).map(([id, item]) => (
+                                        <div key={id} class="item-carrito shadow-sm p-3 mb-2 bg-light rounded-3 border">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <span class="fw-semibold small">{item.nombre}</span>
+                                                <span class="text-primary fw-bold small">${(item.precio * item.cantidad).toFixed(2)}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <span class="text-muted extra-small">
+                                                    ${item.precio} {item.productoGranel === 'TRUE' ? 'x Kg' : 'c/u'}
+                                                </span>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-light border" onClick={() => modificarCantidad(id, -1)}>-</button>
+                                                    {item.productoGranel === 'TRUE' ? (
+                                                        <input type="number" step="0.001" class="form-control form-control-sm text-center" style={{ width: '70px' }} value={item.cantidad} onChange={(e) => actualizarCantidadManual(id, e.target.value)} />
+                                                    ) : (
+                                                        <span class="btn btn-light border disabled fw-bold text-dark" style={{ width: '40px' }}>{item.cantidad}</span>
+                                                    )}
+                                                    <button class="btn btn-light border" onClick={() => modificarCantidad(id, 1)} disabled={item.cantidad >= item.stockDisponible}>+</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* PIE DEL CARRITO (FOOTER): Fijo abajo de la tarjeta (al 80% de la pantalla) */}
+                            <div class="pt-2 pb-3 border-top mt-auto bg-white">
+                                {renderFormaPagoComponent()}
+
+                                <div class="d-flex justify-content-between align-items-center my-2">
+                                    <span class="h6 mb-0 text-muted">Total:</span>
+                                    <span class="h4 mb-0 text-primary fw-bold">${totalCarrito.toFixed(2)}</span>
+                                </div>
+
+                                <button class="btn btn-primary w-100 py-3 fw-bold shadow-sm text-uppercase" onClick={finalizarVenta}>
+                                    COBRAR AHORA
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Offcanvas Gestión */}
+                    <div className={`offcanvas-react left ${menuGestionAbierto ? 'show' : ''}`} style={{ zIndex: 1045 }}>
+                        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-sliders me-2"></i>Gestión Central</h5>
+                            <button type="button" class="btn-close" onClick={() => setMenuGestionAbierto(false)}></button>
+                        </div>
+                        <div class="p-3 overflow-y-auto">
+                            <div class="card card-body border-0 shadow-sm mb-4 bg-light">
+                                <h6 class="fw-bold text-secondary mb-3">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Módulo de Reportes
+                                </h6>
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted text-uppercase mb-1">Consultar Historial por Fecha:</label>
+                                    <input type="date" value={fechaReporte} onChange={(e) => setFechaReporte(e.target.value)} class="form-control" />
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary text-start" onClick={generarReportePDF}>
+                                        <i class="bi bi-file-earmark-pdf me-2"></i> Exportar PDF de Ventas
+                                    </button>
+                                    <button class="btn btn-outline-dark text-start" onClick={verResumenConsola}>
+                                        <i class="bi bi-eye me-2"></i> Ver Resumen Rápido
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card card-body border-0 shadow-sm bg-light">
+                                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-boxes me-2"></i>Control de Inventario</h6>
+                                <p class="small text-muted">Los datos actuales provienen de Google Sheets.</p>
+                                <div class="d-grid gap-2">
+                                    <a href="https://docs.google.com/spreadsheets/d/1Xp-YLo8Ya8OiYmU_YmqgGavMTwQ50x8ODc_oWbfPglE/edit" target="_blank" class="btn btn-success text-start">
+                                        <i class="bi bi-file-earmark-excel me-2"></i> Editar Excel en Línea
+                                    </a>
+                                    <button class="btn btn-outline-primary text-start" onClick={obtenerProductos}>
+                                        <i class="bi bi-arrow-clockwise me-2"></i> Sincronizar / Refrescar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Renderizado en React 18
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
