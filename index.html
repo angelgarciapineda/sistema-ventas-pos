@@ -234,7 +234,8 @@
         const { useState, useEffect, useMemo } = React;
 
         function App() {
-            const SHEET_URL = "https://opensheet.elk.sh/1sHTjDspusbIZ3P5HgHyaEqMaC5Vq9attQTXjc1yN5n0/Inventario";
+            
+            const SHEET_URL = "https://opensheet.elk.sh/1VM6_4hmKuLYC8pxPS6q6MJZup5XExrg-9QvHH5L-M-U/Inventario";
 
             // Estados globales del POS
             const [menuGestionAbierto, setMenuGestionAbierto] = useState(false);
@@ -602,8 +603,8 @@
                                     </div>
                                 ) : (
                                     <div class="row g-3 pb-5">
-                                        {productosFiltrados.map(prod => (
-                                            <div key={prod._idUnico} class="col-12 col-md-4 col-xl-3">
+                                        {productosFiltrados.map(prod => {
+                                            return <div key={prod._idUnico} class="col-12 col-md-4 col-xl-3">
                                                 <div class="card card-producto p-3 shadow-sm">
                                                     <span className={`badge rounded-pill bg-light border badge-stock ${parseInt(prod.stock) <= parseInt(prod.minStock || 5) ? 'text-danger' : 'text-success'}`}>
                                                         Stock: {prod.stock || 0}
@@ -616,14 +617,14 @@
                                                         <p class="small text-muted mb-2 text-truncate">{prod.descripcion || ''}</p>
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center mt-3">
-                                                        <span class="h6 mb-0 fw-bold">${parseFloat(prod.precioVenta || 0).toFixed(2)}</span>
+                                                        <span class="h6 mb-0 fw-bold">${parseFloat(prod.precioVenta || 0)}</span>
                                                         <button class="btn btn-primary btn-sm btn-add shadow-sm" onClick={() => agregarAlCarrito(prod)}>
                                                             <i class="bi bi-plus-lg"></i>
                                                         </button>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            </div>;
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -815,7 +816,7 @@
                                 <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-boxes me-2"></i>Control de Inventario</h6>
                                 <p class="small text-muted">Los datos actuales provienen de Google Sheets.</p>
                                 <div class="d-grid gap-2">
-                                    <a href="https://docs.google.com/spreadsheets/d/1sHTjDspusbIZ3P5HgHyaEqMaC5Vq9attQTXjc1yN5n0/edit" target="_blank" class="btn btn-success text-start">
+                                    <a href="https://docs.google.com/spreadsheets/d/1VM6_4hmKuLYC8pxPS6q6MJZup5XExrg-9QvHH5L-M-U/edit" target="_blank" class="btn btn-success text-start">
                                         <i class="bi bi-file-earmark-excel me-2"></i> Editar Excel en Línea
                                     </a>
                                     <button class="btn btn-outline-primary text-start" onClick={obtenerProductos}>
