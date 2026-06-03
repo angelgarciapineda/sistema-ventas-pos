@@ -234,7 +234,7 @@
         const { useState, useEffect, useMemo } = React;
 
         function App() {
-            
+
             const SHEET_URL = "https://opensheet.elk.sh/1VM6_4hmKuLYC8pxPS6q6MJZup5XExrg-9QvHH5L-M-U/Inventario";
 
             // Estados globales del POS
@@ -281,10 +281,19 @@
             const productosFiltrados = useMemo(() => {
                 const query = busqueda.toLowerCase().trim();
                 if (!query) return productosGlobal;
+
+
+                const normalizar = (texto) => {
+                    return texto
+                        .normalize('NFD') // Separa las letras de sus acentos
+                        .replace(/[\u0300-\u0306\u0308-\u036f]/g, '') // Elimina los signos diacríticos
+                        .toLowerCase(); // Convierte a minúsculas
+                };
+
                 return productosGlobal.filter(p =>
-                    (p.nombre || "").toLowerCase().includes(query) ||
-                    (p.codigo || "").toLowerCase().includes(query) ||
-                    (p.categoria || "").toLowerCase().includes(query)
+                    normalizar(p.nombre).includes(query) ||
+                    normalizar(p.codigo).includes(query) ||
+                    normalizar(p.categoria).includes(query)
                 );
             }, [busqueda, productosGlobal]);
 
