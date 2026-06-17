@@ -204,6 +204,50 @@
             background-color: #f4edf1;
             color: #8a3ffc;
         }
+
+        /* ===== Mejoras ChatGPT ===== */
+        @media (max-width: 991.98px) {
+            .col-carrito-fixed {
+                display: none !important;
+            }
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, #4361ee, #3f37c9) !important;
+            color: white;
+            box-shadow: 0 10px 25px rgba(67, 97, 238, .25);
+        }
+
+        .card-producto {
+            overflow: hidden;
+            border: 1px solid #eef2ff;
+        }
+
+        .card-producto::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4361ee, #7209b7);
+        }
+
+        .precio-producto {
+            font-size: 1.35rem;
+            color: #198754;
+            font-weight: 700;
+        }
+
+        .btn-add {
+            min-width: 95px;
+            font-weight: 600;
+        }
+
+        .carrito-panel {
+            border: 1px solid #eef2ff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .05);
+        }
     </style>
 </head>
 
@@ -216,7 +260,7 @@
         <nav class="navbar navbar-custom py-2">
             <div class="container-fluid px-4 flex-column">
                 <div class="d-flex justify-content-between align-items-center w-100 mb-2">
-                    <span class="navbar-brand mb-0 h1 text-primary fw-bold">
+                    <span class="navbar-brand mb-0 h1 text-white fw-bold">
                         <i class="bi bi-box-seam me-2"></i>Las Güeras
                     </span>
 
@@ -272,11 +316,11 @@
                                     <p class="small text-muted mb-2 text-truncate">{{ prod.descripcion || '' }}</p>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <span class="h6 mb-0 fw-bold">${{ parseFloat(prod.precioVenta || 0).toFixed(2)
+                                    <span class="precio-producto">${{ parseFloat(prod.precioVenta || 0).toFixed(2)
                                         }}</span>
                                     <button class="btn btn-primary btn-sm btn-add shadow-sm"
                                         @click="agregarAlCarrito(prod)">
-                                        <i class="bi bi-plus-lg"></i>
+                                        <i class="bi bi-cart-plus"></i> Agregar
                                     </button>
                                 </div>
                             </div>
@@ -531,13 +575,25 @@
                         });
                 };
 
+
+                const normalizarTexto = (texto) => {
+                    return (texto || "")
+                        .toString()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .toLowerCase();
+                };
+
                 const productosFiltrados = computed(() => {
-                    const query = busqueda.value.toLowerCase().trim();
+                    const query = normalizarTexto(busqueda.value.trim());
+
                     if (!query) return productosGlobal.value;
+
                     return productosGlobal.value.filter(p =>
-                        (p.nombre || "").toLowerCase().includes(query) ||
-                        (p.codigo || "").toLowerCase().includes(query) ||
-                        (p.categoria || "").toLowerCase().includes(query)
+                        normalizarTexto(p.nombre).includes(query) ||
+                        normalizarTexto(p.codigo).includes(query) ||
+                        normalizarTexto(p.categoria).includes(query) ||
+                        normalizarTexto(p.descripcion).includes(query)
                     );
                 });
 
@@ -562,6 +618,7 @@
                             Swal.fire({ icon: 'warning', title: 'Stock máximo', text: 'No hay más piezas disponibles', confirmButtonColor: '#4361ee' });
                         }
                     }
+                    if (navigator.vibrate) navigator.vibrate(40);
                 };
 
                 const modificarCantidad = (id, cambio) => {
